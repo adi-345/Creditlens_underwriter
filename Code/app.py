@@ -3,7 +3,7 @@ import requests
 import json
 
 # The URL of FastAPI backend
-API_URL = "http://127.0.0.1:8000/analyze"
+API_URL = "https://creditlens-underwriter.onrender.com/analyze"
 
 st.set_page_config(page_title="Atidan AI Underwriter", layout="centered")
 
