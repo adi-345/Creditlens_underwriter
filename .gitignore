@@ -1,0 +1,11 @@
+# Environments
+.env
+__pycache__/
+
+# Test Data
+Test Statements/
+*.pdf
+
+# OS generated files
+.DS_Store
+Thumbs.db
