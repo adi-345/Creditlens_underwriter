@@ -1,5 +1,4 @@
-from fastapi import FastAPI, UploadFile, File
-import shutil
+import fastapi
 import os
 
 # Import the core engine YOU built
