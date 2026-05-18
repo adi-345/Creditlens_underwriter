@@ -3,7 +3,6 @@ from groq import Groq
 import os
 import json
 
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 pdf_path = None
 
 def get_financial_context(pdf_path):
@@ -29,6 +28,9 @@ def get_financial_context(pdf_path):
     return found_text
 
 def process_underwriting(pdf_path):
+
+    client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+    
     raw_text = get_financial_context(pdf_path)
     if not raw_text or len(raw_text) < 1500: 
         return {"Error": "PDF is an image or vector graphic. OCR required. Cannot process."}
