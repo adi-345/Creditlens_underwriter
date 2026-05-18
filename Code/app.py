@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import json
 
-# The URL of your FastAPI backend
+# The URL of FastAPI backend
 API_URL = "http://127.0.0.1:8000/analyze"
 
 st.set_page_config(page_title="Atidan AI Underwriter", layout="centered")
@@ -17,7 +17,7 @@ if uploaded_file is not None:
     if st.button("Run Risk Analysis"):
         with st.spinner("Analyzing document via Llama 3.3 70B..."):
             
-            # Send the file to your FastAPI backend
+            # Send the file to FastAPI backend
             files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")}
             
             try:
@@ -26,7 +26,7 @@ if uploaded_file is not None:
                 if response.status_code == 200:
                     result = response.json()
                     
-                    # Handle parsing errors gracefully
+                    # Handle parsing errors
                     if "Error" in result:
                         st.error(result["Error"])
                     else:

@@ -1,7 +1,8 @@
-import fastapi
+from fastapi import FastAPI, UploadFile, File
 import os
+import shutil
 
-# Import the core engine YOU built
+# Import the core engine
 from underwriter import process_underwriting
 
 # Initialize the API
@@ -23,11 +24,11 @@ async def analyze_document(file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, buffer)
     
     try:
-        # 2. Hand the file to your core engine
+        # 2. Hand the file to core engine
         print(f"Processing new file via API: {file.filename}")
         result = process_underwriting(temp_file_path)
         
-        # 3. Return the exact JSON dictionary your engine creates
+        # 3. Return the exact JSON dictionary engine creates
         return result
         
     finally:
