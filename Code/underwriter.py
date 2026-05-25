@@ -56,23 +56,24 @@ def process_underwriting(pdf_path):
     Map the most recent year's data to the "_current" keys, and the older year to the "_previous" keys.    
 
     STRICT RULES:
-    1. Return ONLY the final numbers. 
-    2. DO NOT include formulas, addition, or subtraction (e.g., NO "100 + 50").
+    1. Return all values as STRINGS wrapped in quotes (e.g., "5000").
+    2. If you must combine two numbers, output them as a single string (e.g., "100 + 50"). NEVER output raw unquoted math.
     3. If a value is not explicitly totaled in the text, find the single most relevant line item.
     4. For Revenue, strictly extract "Total revenues", "Total Revenue", "Total Income", or "Revenue from Operations".
     5. Always extract from the "Consolidated" column if both Standalone and Consolidated exist, to match the Balance Sheet.
-    6. If a value is missing, use null.
+    6. If a value is missing, use "null".
     
-    Return ONLY a JSON object:
+    Return ONLY a JSON object exactly matching this format:
     {{
-      "current_assets_current": number, 
-      "current_liabilities_current": number,
-      "total_equity_current": number, 
-      "total_debt_current": number,
-      "net_profit_current": number, 
-      "revenue_current": number,
-      "revenue_previous": number
+      "current_assets_current": "value", 
+      "current_liabilities_current": "value",
+      "total_equity_current": "value", 
+      "total_debt_current": "value",
+      "net_profit_current": "value", 
+      "revenue_current": "value",
+      "revenue_previous": "value"
     }}
+    
     
     Text: {raw_text}
     """
