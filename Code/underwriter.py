@@ -6,29 +6,44 @@ import json
 pdf_path = None
 
 def get_financial_context(pdf_path):
-    doc = fitz.open(pdf_path)
-    # We hunt for both the Balance Sheet and the P&L
+    # Safely open the document
+    try:
+        doc = fitz.open(pdf_path)
+    except Exception as e:
+        print(f"Failed to open PDF: {e}")
+        return ""
+
     targets = {
         "BS": ["balance sheet", "current assets", "total liabilities", "stockholders' equity", "consolidated"],
         "PL": ["statement of operations", "income statement", "total revenues", "gross profit", "net income", "operating expenses", "consolidated"]
     }
+    
     found_text = ""
-    for name, keys in targets.items():
-        best_page = ""
-        max_score = 0
-        for page in doc:
-            text = page.get_text()
-            score = sum(1 for k in keys if k.lower() in text.lower())
-            if score > max_score:
-                max_score = score
-                best_page = text
-        found_text += f"\n--- {name} DATA ---\n" + best_page
+    
+    try:
+        for name, keys in targets.items():
+            best_page = ""
+            max_score = 0
+            for page in doc:
+                text = page.get_text()
+                score = sum(1 for k in keys if k.lower() in text.lower())
+                
+                if score > max_score:
+                    max_score = score
+                    best_page = text
+                
+                # CRITICAL: Drop the page from memory so the server doesn't crash
+                page = None 
+                
+            found_text += f"\n--- {name} DATA ---\n" + best_page
+    finally:
+        # CRITICAL: Close the file so Render doesn't throw a 500 Error
+        doc.close()
 
     print(f"Total characters sent to Groq: {len(found_text)}")    
     return found_text
 
 def process_underwriting(pdf_path):
-
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
     
     raw_text = get_financial_context(pdf_path)
@@ -59,18 +74,16 @@ def process_underwriting(pdf_path):
       "revenue_previous": number
     }}
     
-    
-    Text: {raw_text[:30000]}
+    Text: {raw_text}
     """
-
-    
+    # Removed the [:30000] slice above so the P&L doesn't get chopped off!
 
     completion = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},
-        temperature=0, # Reduces creativity
-        seed=42        # (Forces the exact same path every time)
+        temperature=0, 
+        seed=42        
     )
     
     d = json.loads(completion.choices[0].message.content)
@@ -78,16 +91,12 @@ def process_underwriting(pdf_path):
     print(json.dumps(d, indent=2))
     print("-------------------------\n")
 
-    # Helper to clean numbers
     def clean(key): 
         val = d.get(key, 0)
         if val is None: return 0
         try:
-            # If the AI sends a string like "1,234.56", clean it
             if isinstance(val, str):
-                # Remove common non-numeric chars
                 cleaned_val = val.replace(",", "").replace("₹", "").replace("$", "").strip()
-                # If the AI STILL sends a formula, just take the first number
                 if " " in cleaned_val or "+" in cleaned_val or "-" in cleaned_val:
                     return 0 
                 return float(cleaned_val)
@@ -101,20 +110,17 @@ def process_underwriting(pdf_path):
     profit25 = clean('net_profit_current')
     debt25, equity25 = clean('total_debt_current'), clean('total_equity_current')
 
-    # If a company has absolutely 0 assets, 0 liabilities, or 0 revenue, it's a parse failure.
     if ca25 == 0 and cl25 == 0:
         return {"Error": "Failed to find standard Current Assets/Liabilities. Document may be a Bank filing or uses unsupported formatting."}
     if rev25 == 0:
         return {"Error": "Failed to find Revenue data. P&L page may be missing or unreadable."}
 
-    # Ratios
     current_ratio = ca25 / cl25 if cl25 > 0 else 0
     profit_margin = (profit25 / rev25 * 100) if rev25 > 0 else 0
     debt_equity = debt25 / equity25 if equity25 > 0 else 0
     rev_growth = ((rev25 - rev24) / rev24 * 100) if rev24 > 0 else 0
 
-    # 3. WEIGHTED RISK ENGINE (The 'Banker' Logic)
-    # Total points out of 100
+    # 3. WEIGHTED RISK ENGINE
     points = 0
     if current_ratio > 1.25: points += 30
     if profit_margin > 8: points += 30
@@ -123,12 +129,10 @@ def process_underwriting(pdf_path):
 
     risk_level = "LOW" if points >= 70 else "MEDIUM" if points >= 40 else "HIGH"
 
-    gst_status = "Unchecked"
-
     return {
         "Verdict": f"{risk_level} RISK",
         "Confidence_Score": f"{points}/100",
-        "GST_Reconciliation": gst_status,
+        "GST_Reconciliation": "Unchecked",
         "Extracted_Data": {
             "Current_Assets": ca25,
             "Current_Liabilities": cl25,
@@ -146,7 +150,6 @@ def process_underwriting(pdf_path):
         }
     }
 
-# Run it only if directly called AND a test path is provided
 if __name__ == "__main__":
     if pdf_path:
         print(process_underwriting(pdf_path))
