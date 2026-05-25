@@ -20,6 +20,7 @@ async def analyze_document(file: UploadFile = File(...)):
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
 
-@app.get("/")
+# Health check endpoint that accepts both browser loads (GET) and uptime pings (HEAD)
+@app.api_route("/", methods=["GET", "HEAD"])
 def read_root():
     return {"status": "API is live and waiting for PDFs."}
