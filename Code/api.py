@@ -10,7 +10,7 @@ app = FastAPI(
 
 @app.post("/analyze")
 async def analyze_document(file: UploadFile = File(...)):
-    temp_file_path = f"temp_{file.filename}"
+    temp_file_path = os.path.join("/tmp", f"temp_{file.filename}")
     with open(temp_file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
