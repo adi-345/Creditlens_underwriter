@@ -14,8 +14,15 @@ def get_financial_context(pdf_path):
         return ""
 
     targets = {
-        "BS": ["balance sheet", "current assets", "total liabilities", "stockholders' equity", "consolidated"],
-        "PL": ["statement of operations", "income statement", "total revenues", "gross profit", "net income", "operating expenses", "consolidated"]
+        "BS": [
+            "balance sheet", "current assets", "total liabilities", 
+            "stockholders' equity", "consolidated", "non-current assets", "total equity"
+        ],
+        "PL": [
+            "statement of operations", "income statement", "statement of profit and loss", 
+            "total revenues", "total income", "revenue from operations", 
+            "net income", "profit for the year", "profit before tax", "consolidated"
+        ]
     }
     
     found_text = ""
