@@ -1,6 +1,6 @@
 # CreditLens: Autonomous AI Underwriting Agent
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Streamlit-FF4B4B?style=for-the-badge)](YOUR_CREDITLENS_URL_HERE)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Streamlit-FF4B4B?style=for-the-badge)](https://creditlensunderwriter.streamlit.app/)
 
 CreditLens is a Retrieval-Augmented Generation (RAG) pipeline and full-stack web application built as a project. It automates the extraction and analysis of financial data from massive corporate Annual Reports, generating deterministic risk assessments in seconds.
 
